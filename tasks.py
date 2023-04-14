@@ -3,7 +3,8 @@ import ssl
 import json
 import threading
 
-from .crud import get_relays
+from .crud import get_relays, add_relay
+from .models import Relay
 from .nostr.event import Event
 from .nostr.key import PublicKey
 from .nostr.message_pool import EndOfStoredEventsMessage, EventMessage, NoticeMessage
@@ -13,9 +14,24 @@ from .services import (
     received_subscription_eosenotices,
     received_subscription_events,
 )
+from lnbits.helpers import urlsafe_short_hash
 
 
 async def init_relays():
+    """This function is called when the extension is loaded and when a new relay is added."""
+    # if we don't have any relays, add the default ones
+    try:
+        # this will fail if the db has not been migrated yet.
+        # it will also fail later in this function, so we just return here
+        relays = await get_relays()
+    except:
+        return
+    if not relays.__root__:
+        for r in nostr.default_relays:
+            relay = Relay(url=r, connected=False, id=urlsafe_short_hash())
+            await add_relay(relay)
+        return
+
     # we save any subscriptions teporarily to re-add them after reinitializing the client
     subscriptions = {}
     for relay in nostr.client.relay_manager.relays.values():

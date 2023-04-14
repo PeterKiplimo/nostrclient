@@ -21,6 +21,12 @@ received_subscription_eosenotices: dict[str, EndOfStoredEventsMessage] = {}
 class NostrClient:
     def __init__(self):
         self.client: NostrClientLib = NostrClientLib(connect=False)
+        self.default_relays = [
+            "wss://nostr.oxtr.dev",
+            "wss://nostr-pub.wellorder.net",
+            "wss://nostr.zebedee.cloud",
+            "wss://relay.snort.social",
+        ]
 
 
 nostr = NostrClient()
